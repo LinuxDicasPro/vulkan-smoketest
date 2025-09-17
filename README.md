@@ -56,7 +56,7 @@ Smoke test passed!
 
 ## 📜 Licença
 
-Este projeto está licenciado sob a [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).
+Este projeto está licenciado sob a [Licença Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). 🧾
 
 ## 🕰️ Histórico
 
