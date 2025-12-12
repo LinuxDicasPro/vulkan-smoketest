@@ -33,13 +33,13 @@ class Shell {
     virtual ~Shell() = default;
 
     struct BackBuffer {
-        uint32_t image_index;
+        uint32_t image_index{};
 
-        VkSemaphore acquire_semaphore;
-        VkSemaphore render_semaphore;
+        VkSemaphore acquire_semaphore{};
+        VkSemaphore render_semaphore{};
 
         // signaled when this struct is ready for reuse
-        VkFence present_fence;
+        VkFence present_fence{};
     };
 
     struct Context {
@@ -96,10 +96,10 @@ class Shell {
     Game &game_;
     const Game::Settings &settings_;
 
-    std::vector<const char *> instance_layers_;
-    std::vector<const char *> instance_extensions_;
+    std::vector<const char *> instance_layers_{};
+    std::vector<const char *> instance_extensions_{};
 
-    std::vector<const char *> device_extensions_;
+    std::vector<const char *> device_extensions_{};
 
    private:
     bool debug_report_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, uint64_t object, size_t location,

@@ -77,7 +77,7 @@ bool Shell::debug_report_callback(VkDebugReportFlagsEXT flags, VkDebugReportObje
 }
 
 void Shell::assert_all_instance_layers() const {
-    // enumerate instance layer
+    // list instance layer
     std::vector<VkLayerProperties> layers;
     vk::enumerate(layers);
 
