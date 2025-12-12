@@ -59,6 +59,12 @@ void Shell::cleanup_vk() const {
 
 bool Shell::debug_report_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, uint64_t object,
                                   size_t location, int32_t msg_code, const char *layer_prefix, const char *msg) {
+    // do not use
+    (void)obj_type;
+    (void)object;
+    (void)location;
+    (void)msg_code;
+
     LogPriority prio = LOG_WARN;
     if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
         prio = LOG_ERR;

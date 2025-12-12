@@ -312,15 +312,16 @@ extensions = [
 ]
 
 def generate_header(guard):
-    lines = []
-    lines.append("// This file is generated.")
-    lines.append("#ifndef %s" % guard)
-    lines.append("#define %s" % guard)
-    lines.append("")
-    lines.append("#include <vulkan/vulkan.h>")
-    lines.append("")
-    lines.append("namespace vk {")
-    lines.append("")
+    lines = [
+        "// This file is generated.",
+        "#ifndef %s" % guard,
+        "#define %s" % guard,
+        "",
+        "#include <vulkan/vulkan.h>",
+        "",
+        "namespace vk {",
+        ""
+    ]
 
     for ext in extensions:
         if ext.guard:
@@ -359,12 +360,13 @@ def get_proc_addr(dispatchable, cmd, guard=None):
     return c
 
 def generate_source(header):
-    lines = []
-    lines.append("// This file is generated.")
-    lines.append("#include \"%s\"" % header)
-    lines.append("")
-    lines.append("namespace vk {")
-    lines.append("")
+    lines = [
+        "// This file is generated.",
+        "#include \"%s\"" % header,
+        "",
+        "namespace vk {",
+        ""
+    ]
 
     commands_by_types = {}
     get_instance_proc_addr = None
@@ -431,15 +433,15 @@ def generate_source(header):
 
     return "\n".join(lines)
 
-def parse_vulkan_h(filename):
-    extensions = []
+def parse_vulkan_h(file_name):
+    extension = []
 
-    with open(filename, "r") as f:
+    with open(file_name, "r") as file:
         current_ext = None
         ext_guard = None
         spec_version = None
 
-        for line in f:
+        for line in file:
             line = line.strip()
 
             if line.startswith("#define VK_API_VERSION"):
@@ -448,7 +450,7 @@ def parse_vulkan_h(filename):
                 spec_version = int(line[minor_begin:minor_end])
                 # add core
                 current_ext = Extension("VK_core", spec_version)
-                extensions.append(current_ext)
+                extension.append(current_ext)
             elif Command.valid_c_typedef(line):
                 current_ext.add_command(Command.from_c_typedef(line))
             elif line.startswith("#ifdef VK_USE_PLATFORM"):
@@ -463,16 +465,16 @@ def parse_vulkan_h(filename):
                 name = line[name_begin:name_end]
                 # add extension
                 current_ext = Extension(name, spec_version, ext_guard)
-                extensions.append(current_ext)
+                extension.append(current_ext)
             elif ext_guard and line.startswith("#endif") and ext_guard in line:
                 ext_guard = None
 
-    for ext in extensions:
+    for ext in extension:
         print("%s = %s" % (ext.name.lower(), repr(ext)))
         print("")
 
     print("extensions = [")
-    for ext in extensions:
+    for ext in extension:
         print("    %s," % ext.name.lower())
     print("]")
 

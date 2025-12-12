@@ -47,23 +47,23 @@ def compile_glsl(filename, tmpfile):
         exit(1)
 
     # read the temp file into a list of SPIR-V words
-    words = []
-    with open(tmpfile, "rb") as f:
-        data = f.read()
+    word = []
+    with open(tmpfile, "rb") as file:
+        data = file.read()
         assert(len(data) and len(data) % 4 == 0)
 
         # determine endianness
         fmt = ("<" if data[0] == (SPIRV_MAGIC & 0xff) else ">") + "I"
-        for i in range(0, len(data), 4):
-            words.append(struct.unpack(fmt, data[i:(i + 4)])[0])
+        for j in range(0, len(data), 4):
+            word.append(struct.unpack(fmt, data[j:(j + 4)])[0])
 
-        assert(words[0] == SPIRV_MAGIC)
+        assert(word[0] == SPIRV_MAGIC)
 
 
     # remove temp file
     os.remove(tmpfile)
 
-    return words, output.rstrip()
+    return word, output.rstrip()
 
 base = os.path.basename(in_filename)
 words, comments = compile_glsl(in_filename, base + ".tmp")

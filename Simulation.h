@@ -93,8 +93,7 @@ class Simulation {
     };
 
     [[nodiscard]] const std::vector<Object> &objects() const { return objects_; }
-
-    unsigned int rng_seed() { return random_dev_(); }
+//    unsigned int rng_seed() { return random_dev_(); }
 
     void set_frame_data_size(uint32_t size);
     void update(float time, int begin, int end);
