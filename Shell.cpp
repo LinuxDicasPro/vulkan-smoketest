@@ -281,8 +281,8 @@ void Shell::create_back_buffers() {
     fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     // BackBuffer is used to track which swapchain image and its associated
-    // sync primitives are busy.  Having more BackBuffer's than swapchain
-    // images may allows us to replace CPU wait on present_fence by GPU wait
+    // sync primitives are busy.  Having more BackBuffer than swapchain
+    // images may allow us to replace CPU wait on present_fence by GPU wait
     // on acquire_semaphore.
     const int count = settings_.back_buffer_count + 1;
     for (int i = 0; i < count; i++) {

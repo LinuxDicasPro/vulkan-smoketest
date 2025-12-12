@@ -59,8 +59,8 @@ class MeshPicker {
     }
 
    private:
-    const std::array<Meshes::Type, 10> pattern_;
-    int cur_;
+    const std::array<Meshes::Type, 10> pattern_{};
+    int cur_{0};
 };
 
 class ColorPicker {

@@ -31,7 +31,7 @@ class Game {
     virtual ~Game() = default;
 
     struct Settings {
-        std::string name;
+        std::string name{};
         int initial_width{};
         int initial_height{};
         int queue_count{};
@@ -77,8 +77,8 @@ class Game {
     void quit();
 
    protected:
-    int frame_count;
-    std::chrono::time_point<std::chrono::system_clock> start_time;
+    int frame_count{0};
+    std::chrono::time_point<std::chrono::system_clock> start_time{};
 
     Game(const std::string &name, const std::vector<std::string> &args) : settings_(), shell_(nullptr) {
         settings_.name = name;
@@ -98,7 +98,6 @@ class Game {
         settings_.no_present = false;
 
         settings_.flush_buffers = false;
-
         settings_.max_frame_count = -1;
 
         parse_args(args);
@@ -108,8 +107,8 @@ class Game {
         start_time = std::chrono::system_clock::now();
     }
 
-    Settings settings_;
-    Shell *shell_;
+    Settings settings_{};
+    Shell *shell_{};
 
    private:
     void parse_args(const std::vector<std::string> &args) {

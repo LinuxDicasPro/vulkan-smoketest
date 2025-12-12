@@ -25,7 +25,7 @@ void Game::print_stats() {
     auto elapsed = now - start_time;
     auto elapsed_millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
     std::stringstream ss;
-    ss << "frames:" << frame_count << ", elapsedms:" << elapsed_millis;
+    ss << "frames:" << frame_count << ", elapses:" << elapsed_millis;
     shell_->log(Shell::LogPriority::LOG_INFO, ss.str().c_str());
 }
 

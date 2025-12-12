@@ -36,20 +36,20 @@ inline VkResult assert_success(VkResult res) {
     return res;
 }
 
-inline VkResult enumerate(const char *layer, std::vector<VkExtensionProperties> &exts) {
+inline VkResult enumerate(const char *layer, std::vector<VkExtensionProperties> &ext) {
     uint32_t count = 0;
     vk::EnumerateInstanceExtensionProperties(layer, &count, nullptr);
 
-    exts.resize(count);
-    return vk::EnumerateInstanceExtensionProperties(layer, &count, exts.data());
+    ext.resize(count);
+    return vk::EnumerateInstanceExtensionProperties(layer, &count, ext.data());
 }
 
-inline VkResult enumerate(VkPhysicalDevice phy, const char *layer, std::vector<VkExtensionProperties> &exts) {
+inline VkResult enumerate(VkPhysicalDevice phy, const char *layer, std::vector<VkExtensionProperties> &ext) {
     uint32_t count = 0;
     vk::EnumerateDeviceExtensionProperties(phy, layer, &count, nullptr);
 
-    exts.resize(count);
-    return vk::EnumerateDeviceExtensionProperties(phy, layer, &count, exts.data());
+    ext.resize(count);
+    return vk::EnumerateDeviceExtensionProperties(phy, layer, &count, ext.data());
 }
 
 inline VkResult enumerate(VkInstance instance, std::vector<VkPhysicalDevice> &phys) {

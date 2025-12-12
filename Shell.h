@@ -54,7 +54,7 @@ class Shell {
         VkQueue game_queue{};
         VkQueue present_queue{};
 
-        std::queue<BackBuffer> back_buffers;
+        std::queue<BackBuffer> back_buffers{};
 
         VkSurfaceKHR surface{};
         VkSurfaceFormatKHR format{};
@@ -94,7 +94,7 @@ class Shell {
     void present_back_buffer();
 
     Game &game_;
-    const Game::Settings &settings_;
+    const Game::Settings &settings_{};
 
     std::vector<const char *> instance_layers_{};
     std::vector<const char *> instance_extensions_{};
@@ -113,8 +113,6 @@ class Shell {
 
     void assert_all_instance_layers() const;
     void assert_all_instance_extensions() const;
-
-//    bool has_all_device_layers(VkPhysicalDevice phy) const;
     bool has_all_device_extensions(VkPhysicalDevice phy) const;
 
     // called by init_vk

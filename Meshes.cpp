@@ -141,7 +141,7 @@ class BuildPyramid {
    public:
     explicit BuildPyramid(Mesh &mesh) {
         const std::vector<std::array<float, 6>> vertices = {
-            //      position                normal
+            //      position normal
             {{0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f}},     {{-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f}},
             {{1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f}}, {{1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f}},
             {{-1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f}},
@@ -171,7 +171,7 @@ class BuildIcosphere {
         const float l2 = std::sqrt(2.0f / (5.0f - std::sqrt(5.0f))) * radius_;
         // vertices are from three golden rectangles
         const std::vector<std::array<float, 6>> icosahedron_vertices = {
-            //   position           normal
+            //   position normal
             {{
                 -l1,
                 -l2,
