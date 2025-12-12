@@ -25,7 +25,8 @@
 #include "Game.h"
 
 Shell::Shell(Game &game)
-    : game_(game), settings_(game.settings()), ctx_(), game_tick_(1.0f / (float)settings_.ticks_per_second), game_time_(game_tick_) {
+        : game_(game), settings_(game.settings()), ctx_(), game_tick_(1.0f / (float) settings_.ticks_per_second),
+          game_time_(game_tick_) {
     // require generic WSI extensions
     instance_extensions_.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     device_extensions_.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -82,10 +83,10 @@ void Shell::assert_all_instance_layers() const {
     vk::enumerate(layers);
 
     std::set<std::string> layer_names;
-    for (const auto &layer : layers) layer_names.insert(layer.layerName);
+    for (const auto &layer: layers) layer_names.insert(layer.layerName);
 
     // all listed instance layers are required
-    for (const auto &name : instance_layers_) {
+    for (const auto &name: instance_layers_) {
         if (layer_names.find(name) == layer_names.end()) {
             std::stringstream ss;
             ss << "instance layer " << name << " is missing";
@@ -100,10 +101,10 @@ void Shell::assert_all_instance_extensions() const {
     vk::enumerate(nullptr, exts);
 
     std::set<std::string> ext_names;
-    for (const auto &ext : exts) ext_names.insert(ext.extensionName);
+    for (const auto &ext: exts) ext_names.insert(ext.extensionName);
 
     // all listed instance extensions are required
-    for (const auto &name : instance_extensions_) {
+    for (const auto &name: instance_extensions_) {
         if (ext_names.find(name) == ext_names.end()) {
             std::stringstream ss;
             ss << "instance extension " << name << " is missing";
@@ -118,10 +119,10 @@ bool Shell::has_all_device_extensions(VkPhysicalDevice phy) const {
     vk::enumerate(phy, nullptr, exts);
 
     std::set<std::string> ext_names;
-    for (const auto &ext : exts) ext_names.insert(ext.extensionName);
+    for (const auto &ext: exts) ext_names.insert(ext.extensionName);
 
     // all listed device extensions are required
-    for (const auto &name : device_extensions_) {
+    for (const auto &name: device_extensions_) {
         if (ext_names.find(name) == ext_names.end()) return false;
     }
 
@@ -156,7 +157,8 @@ void Shell::init_debug_report() {
     debug_report_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
 
     debug_report_info.flags =
-        VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT;
+            VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+            VK_DEBUG_REPORT_ERROR_BIT_EXT;
     if (settings_.validate_verbose) {
         debug_report_info.flags = VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT;
     }
@@ -164,7 +166,8 @@ void Shell::init_debug_report() {
     debug_report_info.pfnCallback = debug_report_callback;
     debug_report_info.pUserData = reinterpret_cast<void *>(this);
 
-    vk::assert_success(vk::CreateDebugReportCallbackEXT(ctx_.instance, &debug_report_info, nullptr, &ctx_.debug_report));
+    vk::assert_success(
+            vk::CreateDebugReportCallbackEXT(ctx_.instance, &debug_report_info, nullptr, &ctx_.debug_report));
 }
 
 void Shell::init_physical_dev() {
@@ -173,7 +176,7 @@ void Shell::init_physical_dev() {
     vk::assert_success(vk::enumerate(ctx_.instance, phys));
 
     ctx_.physical_dev = VK_NULL_HANDLE;
-    for (auto phy : phys) {
+    for (auto phy: phys) {
         if (!has_all_device_extensions(phy)) continue;
 
         // get queue properties
@@ -186,10 +189,11 @@ void Shell::init_physical_dev() {
 
             // requires only GRAPHICS for game queues
             const VkFlags game_queue_flags = VK_QUEUE_GRAPHICS_BIT;
-            if (game_queue_family < 0 && (q.queueFlags & game_queue_flags) == game_queue_flags) game_queue_family = (int)i;
+            if (game_queue_family < 0 && (q.queueFlags & game_queue_flags) == game_queue_flags)
+                game_queue_family = (int) i;
 
             // present queue must support the surface
-            if (present_queue_family < 0 && can_present(phy, i)) present_queue_family = (int)i;
+            if (present_queue_family < 0 && can_present(phy, i)) present_queue_family = (int) i;
 
             if (game_queue_family >= 0 && present_queue_family >= 0) break;
         }
@@ -202,7 +206,8 @@ void Shell::init_physical_dev() {
         }
     }
 
-    if (ctx_.physical_dev == VK_NULL_HANDLE) throw std::runtime_error("failed to find any capable Vulkan physical device");
+    if (ctx_.physical_dev == VK_NULL_HANDLE)
+        throw std::runtime_error("failed to find any capable Vulkan physical device");
 }
 
 void Shell::create_context() {
@@ -312,7 +317,8 @@ void Shell::create_swapchain() {
 
     VkBool32 supported;
     vk::assert_success(
-        vk::GetPhysicalDeviceSurfaceSupportKHR(ctx_.physical_dev, ctx_.present_queue_family, ctx_.surface, &supported));
+            vk::GetPhysicalDeviceSurfaceSupportKHR(ctx_.physical_dev, ctx_.present_queue_family, ctx_.surface,
+                                                   &supported));
     // this should be guaranteed by the platform-specific can_present call
     assert(supported);
 
@@ -322,8 +328,8 @@ void Shell::create_swapchain() {
 
     // defer to resize_swapchain()
     ctx_.swapchain = VK_NULL_HANDLE;
-    ctx_.extent.width = (uint32_t)-1;
-    ctx_.extent.height = (uint32_t)-1;
+    ctx_.extent.width = (uint32_t) -1;
+    ctx_.extent.height = (uint32_t) -1;
 }
 
 void Shell::destroy_swapchain() {
@@ -339,12 +345,18 @@ void Shell::destroy_swapchain() {
 }
 
 void Shell::resize_swapchain(uint32_t width_hint, uint32_t height_hint) {
+    // Wait for the GPU to finish all operations before touching the swapchain/surface.
+    // This prevents VK_ERROR_NATIVE_WINDOW_IN_USE_KHR (1000001003).
+    if (ctx_.dev != VK_NULL_HANDLE) {
+        vk::DeviceWaitIdle(ctx_.dev);
+    }
+
     VkSurfaceCapabilitiesKHR caps;
     vk::assert_success(vk::GetPhysicalDeviceSurfaceCapabilitiesKHR(ctx_.physical_dev, ctx_.surface, &caps));
 
     VkExtent2D extent = caps.currentExtent;
     // use the hints
-    if (extent.width == (uint32_t)-1) {
+    if (extent.width == (uint32_t) -1) {
         extent.width = width_hint;
         extent.height = height_hint;
     }
@@ -371,16 +383,17 @@ void Shell::resize_swapchain(uint32_t width_hint, uint32_t height_hint) {
     assert(caps.supportedTransforms & caps.currentTransform);
     assert(caps.supportedCompositeAlpha & (VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR));
     VkCompositeAlphaFlagBitsKHR composite_alpha = (caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR)
-                                                      ? VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR
-                                                      : VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+                                                  ? VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR
+                                                  : VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
     std::vector<VkPresentModeKHR> modes;
     vk::get(ctx_.physical_dev, ctx_.surface, modes);
 
     // FIFO is the only mode universally supported
     VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR;
-    for (auto m : modes) {
-        if ((settings_.vsync && m == VK_PRESENT_MODE_MAILBOX_KHR) || (!settings_.vsync && m == VK_PRESENT_MODE_IMMEDIATE_KHR)) {
+    for (auto m: modes) {
+        if ((settings_.vsync && m == VK_PRESENT_MODE_MAILBOX_KHR) ||
+            (!settings_.vsync && m == VK_PRESENT_MODE_IMMEDIATE_KHR)) {
             mode = m;
             break;
         }
@@ -401,7 +414,7 @@ void Shell::resize_swapchain(uint32_t width_hint, uint32_t height_hint) {
         queue_families.push_back(ctx_.present_queue_family);
 
         swapchain_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        swapchain_info.queueFamilyIndexCount = (uint32_t)queue_families.size();
+        swapchain_info.queueFamilyIndexCount = (uint32_t) queue_families.size();
         swapchain_info.pQueueFamilyIndices = queue_families.data();
     } else {
         swapchain_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -449,8 +462,27 @@ void Shell::acquire_back_buffer() {
     // reset the fence
     vk::assert_success(vk::ResetFences(ctx_.dev, 1, &buf.present_fence));
 
-    vk::assert_success(
-        vk::AcquireNextImageKHR(ctx_.dev, ctx_.swapchain, UINT64_MAX, buf.acquire_semaphore, VK_NULL_HANDLE, &buf.image_index));
+    // Attempts to acquire the next image
+    VkResult res = vk::AcquireNextImageKHR(ctx_.dev, ctx_.swapchain, UINT64_MAX, buf.acquire_semaphore, VK_NULL_HANDLE,
+                                           &buf.image_index);
+
+    // IF IT FAILS BECAUSE IT'S OUT-OF-DATE (Resize event):
+    if (res == VK_ERROR_OUT_OF_DATE_KHR) {
+        // Wait for the GPU to become idle (to avoid the 1000001003 error)
+        if (ctx_.dev != VK_NULL_HANDLE) vk::DeviceWaitIdle(ctx_.dev);
+
+        // Recreate the swapchain (passing 0,0 forces it to read the current window size)
+        resize_swapchain(0, 0);
+
+        // Try to acquire again with the new swapchain
+        res = vk::AcquireNextImageKHR(ctx_.dev, ctx_.swapchain, UINT64_MAX, buf.acquire_semaphore, VK_NULL_HANDLE,
+                                      &buf.image_index);
+    }
+
+    // If it still results in a fatal error (not success or suboptimal), then we stop
+    if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
+        vk::assert_success(res);
+    }
 
     ctx_.acquired_back_buffer = buf;
     ctx_.back_buffers.pop();
@@ -474,9 +506,22 @@ void Shell::present_back_buffer() {
     present_info.pSwapchains = &ctx_.swapchain;
     present_info.pImageIndices = &buf.image_index;
 
-    vk::assert_success(vk::QueuePresentKHR(ctx_.present_queue, &present_info));
+    // Attempts to present the image
+    VkResult res = vk::QueuePresentKHR(ctx_.present_queue, &present_info);
 
+    // If it is obsolete (out-of-date) or suboptimal, we just ignore this frame (it will be fixed in the next acquiring)
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
+        // Wait for the GPU to finish before trying to reuse the fence in the future
+        vk::QueueWaitIdle(ctx_.present_queue);
+    } else {
+        // If it's another error, we check with asserting
+        vk::assert_success(res);
+    }
+
+    // We only submit the fence if the presentation was "attempted" successfully,
+    // but to maintain the simple logic of your original code:
     vk::assert_success(vk::QueueSubmit(ctx_.present_queue, 0, nullptr, buf.present_fence));
+
     ctx_.back_buffers.push(buf);
 }
 

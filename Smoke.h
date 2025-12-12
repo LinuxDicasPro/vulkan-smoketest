@@ -128,7 +128,7 @@ class Smoke : public Game {
     void create_pipeline_layout();
     void create_pipeline();
 
-    void create_frame_data(int count);
+    void create_frame_data();
     void destroy_frame_data();
     void create_fences();
     void create_command_buffers();
@@ -182,9 +182,11 @@ class Smoke : public Game {
     std::vector<VkFramebuffer> framebuffers_{};
 
     // called by workers
-    void update_simulation(const Worker &worker);
+    void update_simulation(const Worker &work);
     void draw_object(const Simulation::Object &obj, FrameData &data, VkCommandBuffer cmd) const;
-    void draw_objects(Worker &worker);
+    void draw_objects(Worker &work);
+
+    Worker *worker{};
 };
 
 #endif  // SMOKE_H
