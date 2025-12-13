@@ -130,8 +130,6 @@ private:
     static void
     registry_handle_global(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
 
-    static void registry_handle_global_remove(void *data, wl_registry *registry, uint32_t name);
-
     static const wl_registry_listener registry_listener;
 };
 

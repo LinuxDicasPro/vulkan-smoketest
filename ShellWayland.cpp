@@ -24,6 +24,7 @@
 #include "ShellWayland.h"
 #include <cstring>
 #include <linux/input.h>
+#include <iomanip>
 
 /* Unused attribute / variable MACRO.
    Some methods of classes' heirs do not need all future parameters.
@@ -69,6 +70,7 @@ namespace {
 }  // namespace
 
 void ShellWayland::handle_xdg_wm_base_ping(void *data, struct xdg_wm_base *xdg_wm_base, uint32_t serial) {
+    (void) data;
     xdg_wm_base_pong(xdg_wm_base, serial);
 }
 
@@ -77,7 +79,9 @@ const struct xdg_wm_base_listener ShellWayland::wm_base_listener = {
 };
 
 void ShellWayland::handle_xdg_surface_configure(void *data, struct xdg_surface *xdg_surface, uint32_t serial) {
-    // É obrigatório confirmar a configuração no xdg_shell
+    (void) data;
+
+    // Acknowledging the configured event in xdg_shell is mandatory
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
@@ -87,11 +91,13 @@ const struct xdg_surface_listener ShellWayland::xdg_surface_listener = {
 
 void ShellWayland::handle_xdg_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel,
                                                  int32_t width, int32_t height, struct wl_array *states) {
-    // Aqui você pode lidar com redimensionamento se necessário.
-    // 0x0 significa que o cliente decide o tamanho.
+    // Here you can handle resizing if necessary.
+    // 0x0 means the client should choose the size.
 }
 
 void ShellWayland::handle_xdg_toplevel_close(void *data, struct xdg_toplevel *xdg_toplevel) {
+    (void) xdg_toplevel;
+
     auto *shell = (ShellWayland *) data;
     shell->quit();
 }
@@ -117,7 +123,7 @@ void ShellWayland::pointer_handle_button(void *data, struct wl_pointer *wl_point
     if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         auto *shell = (ShellWayland *) data;
         if (shell->xdg_toplevel_) {
-            // Permite que o cliente inicie o movimento da janela (arrastar).
+            // Allows the client to initiate window movement (drag).
             xdg_toplevel_move(shell->xdg_toplevel_, shell->seat_, serial);
         }
     }
@@ -205,14 +211,16 @@ const wl_seat_listener ShellWayland::seat_listener = {
 
 void ShellWayland::registry_handle_global(void *data, wl_registry *registry, uint32_t id, const char *interface,
                                           uint32_t version) {
+    (void) version;
+
     auto *shell = (ShellWayland *) data;
     if (strcmp(interface, "wl_compositor") == 0) {
         shell->compositor_ = (wl_compositor *) wl_registry_bind(registry, id, &wl_compositor_interface, 1);
     } else if (strcmp(interface, "xdg_wm_base") == 0) {
-        // Vinculando ao xdg_wm_base moderno em vez de wl_shell
+        // Binding to the modern xdg_wm_base instead of wl_shell
         shell->wm_base_ = (struct xdg_wm_base *) wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
         xdg_wm_base_add_listener(shell->wm_base_, &wm_base_listener, shell);
-    } else if (strcmp(interface, "zxdg_decoration_manager_v1") == 0) { // NOVO: Manager para decorações
+    } else if (strcmp(interface, "zxdg_decoration_manager_v1") == 0) { // NEW: Manager for decorations
         shell->decoration_manager_ = (struct zxdg_decoration_manager_v1 *) wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
     } else if (strcmp(interface, "wl_seat") == 0) {
         shell->seat_ = (wl_seat *) wl_registry_bind(registry, id, &wl_seat_interface, 1);
@@ -220,9 +228,7 @@ void ShellWayland::registry_handle_global(void *data, wl_registry *registry, uin
     }
 }
 
-void ShellWayland::registry_handle_global_remove(void *data, wl_registry *registry, uint32_t name) {}
-
-const wl_registry_listener ShellWayland::registry_listener = {registry_handle_global, registry_handle_global_remove};
+const wl_registry_listener ShellWayland::registry_listener = {registry_handle_global};
 
 ShellWayland::ShellWayland(Game &game) : Shell(game) {
     if (game.settings().validate) instance_layers_.push_back("VK_LAYER_LUNARG_standard_validation");
@@ -240,11 +246,11 @@ ShellWayland::~ShellWayland() {
     if (pointer_) wl_pointer_destroy(pointer_);
     if (seat_) wl_seat_destroy(seat_);
 
-    // NOVO: Destruição dos objetos de decoração
+    // Destroying decoration objects
     if (toplevel_decoration_) zxdg_toplevel_decoration_v1_destroy(toplevel_decoration_);
     if (decoration_manager_) zxdg_decoration_manager_v1_destroy(decoration_manager_);
 
-    // Destruição em ordem reversa da criação XDG
+    // Destroying XDG objects in reverse order of creation
     if (xdg_toplevel_) xdg_toplevel_destroy(xdg_toplevel_);
     if (xdg_surface_) xdg_surface_destroy(xdg_surface_);
     if (wm_base_) xdg_wm_base_destroy(wm_base_);
@@ -264,12 +270,13 @@ void ShellWayland::init_connection() {
         if (!registry_) throw std::runtime_error("failed to get registry");
 
         wl_registry_add_listener(registry_, &ShellWayland::registry_listener, this);
+        // Ensure all global objects are advertised before proceeding (synchronous)
         wl_display_roundtrip(display_);
 
         if (!compositor_) throw std::runtime_error("failed to bind compositor");
 
         if (!wm_base_) throw std::runtime_error("failed to bind xdg_wm_base (compositor might not support xdg-shell)");
-        // Note: decoration_manager_ não precisa ser obrigatório, pois nem todos os compositores o implementam.
+        // Note: decoration_manager_ is optional, so we don't check for it strictly
     } catch (const std::exception &e) {
         std::cerr << "Could not initialize Wayland: " << e.what() << std::endl;
         exit(-1);
@@ -280,24 +287,24 @@ void ShellWayland::create_window() {
     surface_ = wl_compositor_create_surface(compositor_);
     if (!surface_) throw std::runtime_error("failed to create surface");
 
-    // 1. Criar xdg_surface a partir do wl_surface
+    // Create xdg_surface from wl_surface
     xdg_surface_ = xdg_wm_base_get_xdg_surface(wm_base_, surface_);
     if (!xdg_surface_) throw std::runtime_error("failed to create xdg_surface");
     xdg_surface_add_listener(xdg_surface_, &xdg_surface_listener, this);
 
-    // 2. Obter o papel de toplevel (janela padrão)
+    // Get the toplevel role (standard window)
     xdg_toplevel_ = xdg_surface_get_toplevel(xdg_surface_);
     if (!xdg_toplevel_) throw std::runtime_error("failed to create xdg_toplevel");
     xdg_toplevel_add_listener(xdg_toplevel_, &xdg_toplevel_listener, this);
 
-    // NOVO: Solicitar decorações do lado do servidor (Server-Side Decorations)
+    // Request Server-Side Decorations (SSD)
     if (decoration_manager_) {
         toplevel_decoration_ = zxdg_decoration_manager_v1_get_toplevel_decoration(
                 decoration_manager_, xdg_toplevel_
         );
         if (toplevel_decoration_) {
-            // Definir o modo como Server-Side.
-            // O compositor é instruído a desenhar as decorações (barra de título e botões).
+            // Set the mode to Server-Side.
+            // The compositor is instructed to draw the decorations (title bar and buttons).
             zxdg_toplevel_decoration_v1_set_mode(
                     toplevel_decoration_,
                     ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
@@ -305,11 +312,11 @@ void ShellWayland::create_window() {
         }
     }
 
-    // Definir título e ID do app
+    // Set title and app ID
     xdg_toplevel_set_title(xdg_toplevel_, settings_.name.c_str());
     xdg_toplevel_set_app_id(xdg_toplevel_, settings_.name.c_str());
 
-    // Importante: Commit inicial da superfície para disparar o evento de configuração inicial
+    // Important: Initial surface commit to trigger the initially configured event
     wl_surface_commit(surface_);
 }
 
@@ -392,8 +399,9 @@ void ShellWayland::loop_poll() {
         if (current_time - profile_start_time >= 5.0) {
             const double fps = profile_present_count / (current_time - profile_start_time);
             std::stringstream ss;
-            ss << profile_present_count << " presents in " << current_time - profile_start_time << " seconds "
-               << "(FPS: " << fps << ")";
+            ss << std::right << std::setw(5) << profile_present_count << " presents in "
+               << std::left << std::setw(7) << current_time - profile_start_time << " seconds "
+               << "(FPS: " << std::left << std::setw(7) << fps << ")";
             log(LOG_INFO, ss.str().c_str());
 
             profile_start_time = current_time;
@@ -404,8 +412,8 @@ void ShellWayland::loop_poll() {
 
 void ShellWayland::run() {
     create_window();
-    // Em Wayland/XDG, é comum esperar pelo primeiro configure antes de renderizar,
-    // mas o dispatch dentro de loop_poll/wait cuidará disso.
+    // In Wayland/XDG, it's common to wait for the first configuring before rendering,
+    // but the dispatch inside loop_poll/wait will handle it.
     create_context();
     resize_swapchain(settings_.initial_width, settings_.initial_height);
 
