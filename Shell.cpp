@@ -20,9 +20,12 @@
 #include <string>
 #include <sstream>
 #include <set>
+#include <iomanip>
 #include "Helpers.h"
 #include "Shell.h"
 #include "Game.h"
+
+using namespace std;
 
 Shell::Shell(Game &game)
         : game_(game), settings_(game.settings()), ctx_(), game_tick_(1.0f / (float) settings_.ticks_per_second),
@@ -60,10 +63,10 @@ void Shell::cleanup_vk() const {
 bool Shell::debug_report_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, uint64_t object,
                                   size_t location, int32_t msg_code, const char *layer_prefix, const char *msg) {
     // do not use
-    (void)obj_type;
-    (void)object;
-    (void)location;
-    (void)msg_code;
+    (void) obj_type;
+    (void) object;
+    (void) location;
+    (void) msg_code;
 
     LogPriority prio = LOG_WARN;
     if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
@@ -217,15 +220,46 @@ void Shell::init_physical_dev() {
 }
 
 void Shell::create_context() {
+    // List all physical devices (GPUs) on the system.
+    uint32_t device_count = 0;
+    vk::EnumeratePhysicalDevices(ctx_.instance, &device_count, nullptr);
+
+    if (device_count == 0) {
+        throw std::runtime_error("ERROR: Failed to find any Vulkan-capable GPUs!");
+    }
+
+    std::vector<VkPhysicalDevice> devices(device_count);
+    vk::EnumeratePhysicalDevices(ctx_.instance, &device_count, devices.data());
+    cout << "Detected GPUs: " << endl;
+
+    // First, try to find a dedicated GPU (the best performance)
+    for (const auto &device: devices) {
+        VkPhysicalDeviceProperties props;
+        vk::GetPhysicalDeviceProperties(device, &props);
+
+        ostringstream oss;
+        oss << left << setw(40) << props.deviceName << " (Type: "
+            << ((props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) ? "Dedicated" :
+                (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) ? "Integrated" :
+                "Other") << ")";
+
+        cout << "\t- " << oss.str() << endl;
+    }
+
+    VkPhysicalDeviceProperties final_props;
+    vk::GetPhysicalDeviceProperties(ctx_.physical_dev, &final_props);
+    std::cout << "Selected GPU for test: " << final_props.deviceName << std::endl;
+
+    // create_dev() now uses the selected GPU (ctx_.physical_dev) to create the logical device
     create_dev();
     vk::init_dispatch_table_bottom(ctx_.instance, ctx_.dev);
-
     vk::GetDeviceQueue(ctx_.dev, ctx_.game_queue_family, 0, &ctx_.game_queue);
     vk::GetDeviceQueue(ctx_.dev, ctx_.present_queue_family, 0, &ctx_.present_queue);
 
     create_back_buffers();
 
     // initialize ctx_.{surface,format} before attach_shell
+    // Creates the image swapchain based on the selected GPU and window surface
     create_swapchain();
 
     game_.attach_shell(*this);

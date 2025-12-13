@@ -18,6 +18,7 @@
 #include <sstream>
 #include <dlfcn.h>
 #include <ctime>
+#include <iomanip>
 
 #include "Helpers.h"
 #include "Game.h"
@@ -25,50 +26,50 @@
 
 namespace {
 
-class PosixTimer {
-   public:
-    PosixTimer() { reset(); }
+    class PosixTimer {
+    public:
+        PosixTimer() { reset(); }
 
-    void reset() { clock_gettime(CLOCK_MONOTONIC, &start_); }
+        void reset() { clock_gettime(CLOCK_MONOTONIC, &start_); }
 
-    [[nodiscard]] double get() const {
-        struct timespec now{};
-        clock_gettime(CLOCK_MONOTONIC, &now);
+        [[nodiscard]] double get() const {
+            struct timespec now{};
+            clock_gettime(CLOCK_MONOTONIC, &now);
 
-        constexpr long one_s_in_ns = 1000 * 1000 * 1000;
-        constexpr auto one_s_in_ns_d = static_cast<double>(one_s_in_ns);
+            constexpr long one_s_in_ns = 1000 * 1000 * 1000;
+            constexpr auto one_s_in_ns_d = static_cast<double>(one_s_in_ns);
 
-        time_t s = now.tv_sec - start_.tv_sec;
-        long ns;
-        if (now.tv_nsec > start_.tv_nsec) {
-            ns = now.tv_nsec - start_.tv_nsec;
-        } else {
-            assert(s > 0);
-            s--;
-            ns = one_s_in_ns - (start_.tv_nsec - now.tv_nsec);
+            time_t s = now.tv_sec - start_.tv_sec;
+            long ns;
+            if (now.tv_nsec > start_.tv_nsec) {
+                ns = now.tv_nsec - start_.tv_nsec;
+            } else {
+                assert(s > 0);
+                s--;
+                ns = one_s_in_ns - (start_.tv_nsec - now.tv_nsec);
+            }
+
+            return static_cast<double>(s) + static_cast<double>(ns) / one_s_in_ns_d;
         }
 
-        return static_cast<double>(s) + static_cast<double>(ns) / one_s_in_ns_d;
+    private:
+        struct timespec start_{};
+    };
+
+    xcb_intern_atom_cookie_t intern_atom_cookie(xcb_connection_t *c, const std::string &s) {
+        return xcb_intern_atom(c, false, s.size(), s.c_str());
     }
 
-   private:
-    struct timespec start_{};
-};
+    xcb_atom_t intern_atom(xcb_connection_t *c, xcb_intern_atom_cookie_t cookie) {
+        xcb_atom_t atom = XCB_ATOM_NONE;
+        xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(c, cookie, nullptr);
+        if (reply) {
+            atom = reply->atom;
+            free(reply);
+        }
 
-xcb_intern_atom_cookie_t intern_atom_cookie(xcb_connection_t *c, const std::string &s) {
-    return xcb_intern_atom(c, false, s.size(), s.c_str());
-}
-
-xcb_atom_t intern_atom(xcb_connection_t *c, xcb_intern_atom_cookie_t cookie) {
-    xcb_atom_t atom = XCB_ATOM_NONE;
-    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(c, cookie, nullptr);
-    if (reply) {
-        atom = reply->atom;
-        free(reply);
+        return atom;
     }
-
-    return atom;
-}
 
 }  // namespace
 
@@ -111,7 +112,8 @@ void ShellXcb::create_window() {
     value_list[0] = scr_->black_pixel;
     value_list[1] = XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
-    xcb_create_window(c_, XCB_COPY_FROM_PARENT, win_, scr_->root, 0, 0, settings_.initial_width, settings_.initial_height, 0,
+    xcb_create_window(c_, XCB_COPY_FROM_PARENT, win_, scr_->root, 0, 0, settings_.initial_width,
+                      settings_.initial_height, 0,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, scr_->root_visual, value_mask, value_list);
 
     xcb_intern_atom_cookie_t utf8_string_cookie = intern_atom_cookie(c_, "UTF8_STRING");
@@ -179,12 +181,12 @@ void ShellXcb::handle_event(const xcb_generic_event_t *ev) {
         case XCB_CONFIGURE_NOTIFY: {
             const auto *notify = reinterpret_cast<const xcb_configure_notify_event_t *>(ev);
             resize_swapchain(notify->width, notify->height);
-        } break;
+        }
+            break;
         case XCB_KEY_PRESS: {
             const auto *press = reinterpret_cast<const xcb_key_press_event_t *>(ev);
             Game::Key key;
 
-            // TODO translate xcb_keycode_t
             switch (press->detail) {
                 case 9:
                     key = Game::KEY_ESC;
@@ -204,11 +206,14 @@ void ShellXcb::handle_event(const xcb_generic_event_t *ev) {
             }
 
             game_.on_key(key);
-        } break;
+        }
+            break;
         case XCB_CLIENT_MESSAGE: {
             const auto *msg = reinterpret_cast<const xcb_client_message_event_t *>(ev);
-            if (msg->type == wm_protocols_ && msg->data.data32[0] == wm_delete_window_) game_.on_key(Game::KEY_SHUTDOWN);
-        } break;
+            if (msg->type == wm_protocols_ && msg->data.data32[0] == wm_delete_window_)
+                game_.on_key(Game::KEY_SHUTDOWN);
+        }
+            break;
         default:
             break;
     }
@@ -261,8 +266,9 @@ void ShellXcb::loop_poll() {
         if (current_time - profile_start_time >= 5.0) {
             const double fps = profile_present_count / (current_time - profile_start_time);
             std::stringstream ss;
-            ss << profile_present_count << " presents in " << current_time - profile_start_time << " seconds "
-               << "(FPS: " << fps << ")";
+            ss << std::right << std::setw(5) << profile_present_count << " presents in "
+               << std::left << std::setw(7) << current_time - profile_start_time << " seconds "
+               << "(FPS: " << std::left << std::setw(7) << fps << ")";
             log(LOG_INFO, ss.str().c_str());
 
             profile_start_time = current_time;
