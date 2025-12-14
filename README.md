@@ -1,14 +1,24 @@
-# 🌀 Vulkan Smoke Test
+<p align="center">
+  <img src="logo.png" width="256">
+</p>
 
-This is a simple smoke test utility to verify that the Vulkan environment is correctly installed and functional on your system.
+<h1 align="center">Vulkan Smoke Test</h1> 
 
-The project was originally maintained within the Vulkan-Tools repository until version 1.1.70, when it was removed. This repository aims to preserve and maintain vulkan-smoketest independently.
+<h3 align="center">This is a simple smoke test utility to verify that the Vulkan environment is 
+correctly installed and functional on your system.
+<br/><br/>
+The project was originally maintained within the Vulkan-Tools repository until 
+version 1.1.70, when it was removed. This repository aims to preserve and maintain 
+vulkan-smoketest independently.</h3>
 
 ## 🎯 Objective
 
-vulkan-smoketest is a minimalist and essential diagnostic tool that initializes a Vulkan instance, checks crucial surface extensions, and attempts to create a logical device.
+vulkan-smoketest is a minimalist and essential diagnostic tool that initializes a
+Vulkan instance, checks crucial surface extensions, and attempts to create a
+logical device.
 
-Its primary purpose is to confirm the integrity of your Vulkan stack, being useful in scenarios such as:
+Its primary purpose is to confirm the integrity of your Vulkan stack, being
+useful in scenarios such as:
 
 * Post-installation validation of drivers and SDK.
 * Diagnosis in Linux distributions or live environments.
@@ -24,11 +34,16 @@ Its primary purpose is to confirm the integrity of your Vulkan stack, being usef
 
 ### Wayland Modernization and Stability
 
-This version introduces modern support for the Wayland/XDG Shell protocol and includes crucial stability enhancements for Vulkan window operation, along with **zxdg_decoration_manager_v1** for native window decorations (Server-Side Decorations - SSD).
+This version introduces modern support for the Wayland/XDG Shell protocol
+and includes crucial stability enhancements for Vulkan window operation,
+along with **zxdg_decoration_manager_v1** for native window decorations
+(Server-Side Decorations - SSD).
 
 ### Critical Stability Fix
 
-This version implements a solution for the recurring bug error **VK_ERROR_NATIVE_WINDOW_IN_USE_KHR (VkResult 1000001003)**, which was triggered when trying to resize or maximize and restore the window.
+This version implements a solution for the recurring bug error
+**VK_ERROR_NATIVE_WINDOW_IN_USE_KHR (VkResult 1000001003)**, which was
+triggered when trying to resize or maximize and restore the window.
 
 ## 🛠️ Compilation
 
@@ -99,12 +114,15 @@ This project is licensed under the **Apache License 2.0**. 🧾
 
 ## 🤝 Contributions
 
-Contributions are actively encouraged! To ensure vulkan-smoketest remains a relevant diagnostic tool, we seek collaboration from the community.
+Contributions are actively encouraged! To ensure vulkan-smoketest remains
+a relevant diagnostic tool, we seek collaboration from the community.
 
 ### Main Focus for Contributions
 
 * **Platform Stability**: Testing and fixing backend-specific bugs.
-* **SDK Compatibility**: Maintaining compliance with new Vulkan SDK versions and specifications.
-* **Diagnostic Improvement**: Adding more integrity checks and providing more detailed and useful error logs.
+* **SDK Compatibility**: Maintaining compliance with new Vulkan SDK versions
+and specifications.
+* **Diagnostic Improvement**: Adding more integrity checks and providing more
+detailed and useful error logs.
 
 To contribute, please create an **Issue** or submit a **Pull Request**.
