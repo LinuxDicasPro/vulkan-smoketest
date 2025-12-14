@@ -1,71 +1,110 @@
 # 🌀 Vulkan Smoke Test
 
-Este é um utilitário simples de *smoke test* (teste rápido) para verificar
-se o ambiente Vulkan está corretamente instalado e funcionando em seu sistema.
+This is a simple smoke test utility to verify that the Vulkan environment is correctly installed and functional on your system.
 
-O projeto era originalmente mantido dentro do repositório Vulkan-Tools até
-a versão 1.1.70, quando foi removido. Este repositório busca preservar
-e manter o `vulkan-smoketest` de forma independente.
+The project was originally maintained within the Vulkan-Tools repository until version 1.1.70, when it was removed. This repository aims to preserve and maintain vulkan-smoketest independently.
 
-## 🎯 Objetivo
+## 🎯 Objective
 
-O `vulkan-smoketest` é uma ferramenta minimalista que inicializa uma instância
-Vulkan, verifica extensões e tenta criar um dispositivo lógico. Seu propósito
-é confirmar se a pilha Vulkan está funcional — útil especialmente para
-distribuições, ambientes live, ou validação após instalação de drivers.
+vulkan-smoketest is a minimalist and essential diagnostic tool that initializes a Vulkan instance, checks crucial surface extensions, and attempts to create a logical device.
 
-## 🧩 Compatibilidade
+Its primary purpose is to confirm the integrity of your Vulkan stack, being useful in scenarios such as:
 
-* ✅ Testado no Vulkan SDK 1.2.176.1
-* 🔄 Compatível com Vulkan SDK 1.0+
-* 🧰 Compiladores: GCC, Clang, MSVC
+* Post-installation validation of drivers and SDK.
+* Diagnosis in Linux distributions or live environments.
+* Confirming the Vulkan stack is functional.
 
-## 🛠️ Compilação
+## 🧩 Compatibility
 
-### Requer:
+* ✅ Tested with Vulkan SDK **1.2.176.1**
+* 🔄 Compatible with Vulkan SDK **1.0+**
+* 🧰 Compilers: **GCC**, **Clang**, **MSVC**
 
-* Vulkan SDK instalado (ou headers e loader do Vulkan disponíveis no sistema)
+## 🚀 Key Adjustments
+
+### Wayland Modernization and Stability
+
+This version introduces modern support for the Wayland/XDG Shell protocol and includes crucial stability enhancements for Vulkan window operation, along with **zxdg_decoration_manager_v1** for native window decorations (Server-Side Decorations - SSD).
+
+### Critical Stability Fix
+
+This version implements a solution for the recurring bug error **VK_ERROR_NATIVE_WINDOW_IN_USE_KHR (VkResult 1000001003)**, which was triggered when trying to resize or maximize and restore the window.
+
+## 🛠️ Compilation
+
+### Requirements
+
+* Vulkan SDK installed (or Vulkan headers and loader available on the system)
 * CMake
+* For Wayland: Wayland client headers and libraries (and **wayland-scanner**)
+
+### Build Instructions
 
 ```bash
 git clone https://github.com/seu-usuario/vulkan-smoketest.git
 cd vulkan-smoketest
 mkdir build && cd build
+
+# Standard build (detects the best option for the platform)
 cmake ..
+make
+
+# --- OR ---
+
+# Forced build for Wayland/XDG (required if you want to test the Wayland backend)
+cmake .. -DBUILD_SELECTION=WAYLAND
 make
 ```
 
-## ▶️ Uso
+## ▶️ Usage
 
-Após a compilação:
+After compilation:
 
 ```bash
 ./vulkan-smoketest
 ```
 
-Saída esperada: uma lista de informações básicas da instância Vulkan e o
-resultado da criação de um dispositivo lógico.
+Or if compiled with Wayland:
 
-```text
-vulkan-smoketest: Vulkan instance created successfully.
-Physical device: AMD RADV NAVI23
-Queue family 0 supports graphics.
-Logical device created and queue retrieved.
-Smoke test passed!
+```bash
+./vulkan-smoketest-wayland
 ```
 
-## 📜 Licença
+### Expected Output
 
-Este projeto está licenciado sob a [Licença Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). 🧾
+A list of basic Vulkan instance information and the result of logical device creation.
 
-## 🕰️ Histórico
+```text
+Detected GPUs:
+        - Intel(R) UHD Graphics 620 (WHL GT2)      (Type: Integrated)
+        - llvmpipe (LLVM 13.0.0, 256 bits)         (Type: Other)
+        - NVIDIA GeForce MX110                     (Type: Dedicated)
+Selected GPU for test: Intel(R) UHD Graphics 620 (WHL GT2)
+  840 presents in 5.0039  seconds (FPS: 167.869)
+  810 presents in 5.00021 seconds (FPS: 161.993)
+ 1073 presents in 5.00398 seconds (FPS: 214.429)
+ 1149 presents in 5.00368 seconds (FPS: 229.631)
+frames:4058, elapses:21011
+```
 
-* 📌 Originalmente parte de [KhronosGroup/Vulkan-Tools](https://github.com/KhronosGroup/Vulkan-Tools)
-* ❌ Removido após a versão 1.1.70
-* ♻️ Projeto resgatado e mantido independentemente por **`LinuxDicasPro`**
+## 📜 License
 
-## 🤝 Contribuições
+This project is licensed under the **Apache License 2.0**. 🧾
 
-Contribuições são bem-vindas para manter a compatibilidade com novas versões
-do Vulkan SDK, melhorar diagnósticos ou facilitar integração com sistemas
-automatizados de testes.
+## 🕰️ History
+
+* 📌 Originally part of **KhronosGroup/Vulkan-Tools**
+* ❌ Removed after version **1.1.70**
+* ♻️ Project rescued and maintained independently by **LinuxDicasPro**
+
+## 🤝 Contributions
+
+Contributions are actively encouraged! To ensure vulkan-smoketest remains a relevant diagnostic tool, we seek collaboration from the community.
+
+### Main Focus for Contributions
+
+* **Platform Stability**: Testing and fixing backend-specific bugs.
+* **SDK Compatibility**: Maintaining compliance with new Vulkan SDK versions and specifications.
+* **Diagnostic Improvement**: Adding more integrity checks and providing more detailed and useful error logs.
+
+To contribute, please create an **Issue** or submit a **Pull Request**.
