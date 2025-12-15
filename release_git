@@ -1,0 +1,12 @@
+#!/bin/sh
+
+TAG1="X11"
+TAG2="Wayland"
+
+gh release delete "$TAG1" --yes
+gh release create "$TAG1" cmake-build-debug/vulkan-smoketest --title "$TAG1" --notes "Vulkan Smoke Test $TAG1 Release - 64bit"
+
+gh release delete "$TAG2" --yes
+gh release create "$TAG2" cmake-build-debug-wayland/vulkan-smoketest-wayland --title "$TAG2" --notes "Vulkan Smoke Test $TAG2 Release - 64bit"
+
+echo "Releases criadas/atualizadas com os binários enviados."
